@@ -114,7 +114,21 @@ class Translator implements TranslatorInterface {
 	 */
 	public function get($key, $parameters = array(), $locale = null)
 	{
-		return $this->trans($key, $parameters, null, $locale);
+		return $this->trans($key, $parameters, 'messages', $locale);
+	}
+
+	/**
+	 * Get a translation according to an integer value.
+	 *
+	 * @param  string  $id
+	 * @param  int     $number
+	 * @param  array   $parameters
+	 * @param  string  $locale
+	 * @return string
+	 */
+	public function choice($key, $number, $parameters = array(), $locale = null)
+	{
+		return $this->transChoice($key, $number, $parameters, 'messages', $locale);
 	}
 
 	/**
@@ -126,7 +140,7 @@ class Translator implements TranslatorInterface {
 	 * @param  string  $locale
 	 * @return string
 	 */
-	public function trans($id, array $parameters = array(), $domain = null, $locale = null)
+	public function trans($id, array $parameters = array(), $domain = 'messages', $locale = null)
 	{
 		return $this->trans->trans($id, $parameters, $domain, $locale);
 	}
@@ -141,7 +155,7 @@ class Translator implements TranslatorInterface {
 	 * @param  string  $locale
 	 * @return string
 	 */
-	public function transChoice($id, $number, array $parameters = array(), $domain = null, $locale = null)
+	public function transChoice($id, $number, array $parameters = array(), $domain = 'messages', $locale = null)
 	{
 		return $this->trans->transChoice($id, $number, $parameters, $domain, $locale);
 	}
