@@ -35,6 +35,13 @@ class Translator implements TranslatorInterface {
 	protected $fallback;
 
 	/**
+	 * All of the loaded messages.
+	 *
+	 * @var array
+	 */
+	protected $messages = array();
+
+	/**
 	 * Create a new translator instance.
 	 *
 	 * @param  array   $locales
@@ -70,6 +77,47 @@ class Translator implements TranslatorInterface {
 	}
 
 	/**
+	 * Load the translations for the translator.
+	 *
+	 * @param  Illuminate\Translation\LoaderInterface  $loader
+	 * @return void
+	 */
+	public function loadTranslations(LoaderInterface $loader)
+	{
+		foreach ($this->locales as $locale)
+		{
+			$this->messages[$locale] = $messages = $loader->loadLocale($locale);
+
+			$this->trans->addResource('array', $messages, $locale);
+		}
+	}
+
+	/**
+	 * Determine if a translation exists.
+	 *
+	 * @param  string  $key
+	 * @param  string  $locale
+	 * @return bool
+	 */
+	public function has($key, $locale = null)
+	{
+		return $this->get($key, array(), $locale) !== $key;
+	}
+
+	/**
+	 * Get the translation for a given key.
+	 *
+	 * @param  string  $id
+	 * @param  array   $parameters
+	 * @param  string  $locale
+	 * @return string
+	 */
+	public function get($key, $parameters = array(), $locale = null)
+	{
+		return $this->trans($key, $parameters, null, $locale);
+	}
+
+	/**
 	 * Get the translation for a given key.
 	 *
 	 * @param  string  $id
@@ -80,7 +128,7 @@ class Translator implements TranslatorInterface {
 	 */
 	public function trans($id, array $parameters = array(), $domain = null, $locale = null)
 	{
-		//
+		return $this->trans->trans($id, $parameters, $domain, $locale);
 	}
 
 	/**
@@ -95,7 +143,7 @@ class Translator implements TranslatorInterface {
 	 */
 	public function transChoice($id, $number, array $parameters = array(), $domain = null, $locale = null)
 	{
-		//
+		return $this->trans->transChoice($id, $number, $parameters, $domain, $locale);
 	}
 
 	/**
@@ -120,6 +168,16 @@ class Translator implements TranslatorInterface {
 	}
 
 	/**
+	 * Get all of the raw translations that have been loaded.
+	 *
+	 * @var array
+	 */
+	public function getMessages()
+	{
+		return $this->messages;
+	}
+
+	/**
 	 * Get the base Symfony translator instance.
 	 *
 	 * @return Symfony\Translation\Translator
@@ -127,6 +185,17 @@ class Translator implements TranslatorInterface {
 	public function getSymfonyTranslator()
 	{
 		return $this->trans;
+	}
+
+	/**
+	 * Get the base Symfony translator instance.
+	 *
+	 * @param  Symfony\Translation\Translator  $trans
+	 * @return void
+	 */
+	public function setSymfonyTranslator(SymfonyTranslator $trans)
+	{
+		$this->trans = $trans;
 	}
 
 }
