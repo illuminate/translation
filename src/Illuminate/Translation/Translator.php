@@ -7,6 +7,13 @@ use Symfony\Component\Translation\Translator as SymfonyTranslator;
 class Translator implements TranslatorInterface {
 
 	/**
+	 * The loader implementation.
+	 *
+	 * @var Illuminate\Translation\LoaderInterface
+	 */
+	protected $loader;
+
+	/**
 	 * The Symfony translator instance.
 	 *
 	 * @var Symfony\Translation\Translator
@@ -35,22 +42,17 @@ class Translator implements TranslatorInterface {
 	protected $fallback;
 
 	/**
-	 * All of the loaded messages.
-	 *
-	 * @var array
-	 */
-	protected $messages = array();
-
-	/**
 	 * Create a new translator instance.
 	 *
+	 * @param  Illuminate\Translation\LoaderInterface
 	 * @param  array   $locales
 	 * @param  string  $default
 	 * @param  string  $fallback
 	 * @return void
 	 */
-	public function __construct(array $locales, $default, $fallback)
+	public function __construct(LoaderInterface $loader, array $locales, $default, $fallback)
 	{
+		$this->loader = $loader;
 		$this->locales = $locales;
 		$this->default = $default;
 		$this->fallback = $fallback;
@@ -82,11 +84,11 @@ class Translator implements TranslatorInterface {
 	 * @param  Illuminate\Translation\LoaderInterface  $loader
 	 * @return void
 	 */
-	public function loadTranslations(LoaderInterface $loader)
+	public function loadTranslations()
 	{
 		foreach ($this->locales as $locale)
 		{
-			$this->messages[$locale] = $messages = $loader->loadLocale($locale);
+			$messages = $this->loader->loadLocale($locale);
 
 			$this->trans->addResource('array', $messages, $locale);
 		}
@@ -114,7 +116,9 @@ class Translator implements TranslatorInterface {
 	 */
 	public function get($key, $parameters = array(), $locale = null)
 	{
-		return $this->trans($key, $parameters, 'messages', $locale);
+		list($namespace, $key) = $this->parseKey($key);
+
+		return $this->trans($key, $parameters, $namespace, $locale);
 	}
 
 	/**
@@ -128,7 +132,9 @@ class Translator implements TranslatorInterface {
 	 */
 	public function choice($key, $number, $parameters = array(), $locale = null)
 	{
-		return $this->transChoice($key, $number, $parameters, 'messages', $locale);
+		list($namespace, $key) = $this->parseKey($key);
+
+		return $this->transChoice($key, $number, $parameters, $namespace, $locale);
 	}
 
 	/**
@@ -161,6 +167,42 @@ class Translator implements TranslatorInterface {
 	}
 
 	/**
+	 * Add a new named path to the loader.
+	 *
+	 * @param  string  $name
+	 * @param  string  $path
+	 * @param  array   $locales
+	 * @return void
+	 */
+	public function addNamedPath($name, $path, array $locales)
+	{
+		foreach ($locales as $locale)
+		{
+			$messages = $this->loader->loadLocaleFromHint($locale, $path);
+
+			$this->trans->addResource('array', $messages, $locale, $name);
+		}
+	}
+
+	/**
+	 * Parse the key and get the namespace and key segments.
+	 *
+	 * @param  string  $key
+	 * @return array
+	 */
+	protected function parseKey($key)
+	{
+		if (strpos($key, '::') !== false)
+		{
+			return explode('::', $key);
+		}
+		else
+		{
+			return array('messages', $key);
+		}
+	}
+
+	/**
 	 * Get the default locale being used.
 	 *
 	 * @return string
@@ -179,16 +221,6 @@ class Translator implements TranslatorInterface {
 	public function setLocale($locale)
 	{
 		$this->trans->setLocale($locale);
-	}
-
-	/**
-	 * Get all of the raw translations that have been loaded.
-	 *
-	 * @var array
-	 */
-	public function getMessages()
-	{
-		return $this->messages;
 	}
 
 	/**

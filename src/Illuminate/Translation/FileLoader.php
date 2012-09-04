@@ -12,7 +12,7 @@ class FileLoader implements LoaderInterface {
 	protected $files;
 
 	/**
-	 * The translation file storage path.
+	 * The default path for the loader.
 	 *
 	 * @var string
 	 */
@@ -22,7 +22,6 @@ class FileLoader implements LoaderInterface {
 	 * Create a new file loader instance.
 	 *
 	 * @param  Illuminate\Filesystem  $files
-	 * @param  string  $path
 	 * @return void
 	 */
 	public function __construct(Filesystem $files, $path)
@@ -39,7 +38,31 @@ class FileLoader implements LoaderInterface {
 	 */
 	public function loadLocale($locale)
 	{
-		if ($this->files->exists($full = $this->path.'/'.$locale.'.php'))
+		return $this->loadLocaleFromPath($this->path, $locale);
+	}
+
+	/**
+	 * Load the messages for a hinted locale.
+	 *
+	 * @param  string  $locale
+	 * @param  string  $hint
+	 * @return array
+	 */
+	public function loadLocaleFromHint($locale, $hint)
+	{
+		return $this->loadLocaleFromPath($hint, $locale);
+	}
+
+	/**
+	 * Load a locale from a given path.
+	 *
+	 * @param  string  $path
+	 * @param  string  $locale
+	 * @return array
+	 */
+	public function loadLocaleFromPath($path, $locale)
+	{
+		if ($this->files->exists($full = $path.'/'.$locale.'.php'))
 		{
 			return $this->files->getRequire($full);
 		}
