@@ -19,8 +19,8 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 		$files->shouldReceive('getRequire')->once()->with(__DIR__.'/en.php')->andReturn(array('en.messages'));
 		$files->shouldReceive('exists')->once()->with(__DIR__.'/sp.php')->andReturn(false);
 
-		$this->assertEquals(array('en.messages'), $loader->loadLocale('en'));
-		$this->assertEquals(array(), $loader->loadLocale('sp'));
+		$this->assertEquals(array('en.messages'), $loader->load('en'));
+		$this->assertEquals(array(), $loader->load('sp'));
 	}
 
 }

@@ -36,7 +36,7 @@ class FileLoader implements LoaderInterface {
 	 * @param  string  $locale
 	 * @return array
 	 */
-	public function loadLocale($locale)
+	public function load($locale)
 	{
 		return $this->loadLocaleFromPath($this->path, $locale);
 	}
@@ -45,10 +45,11 @@ class FileLoader implements LoaderInterface {
 	 * Load the messages for a hinted locale.
 	 *
 	 * @param  string  $locale
+	 * @param  string  $namespace
 	 * @param  string  $hint
 	 * @return array
 	 */
-	public function loadLocaleFromHint($locale, $hint)
+	public function loadNamespaced($locale, $namespace, $hint)
 	{
 		return $this->loadLocaleFromPath($hint, $locale);
 	}

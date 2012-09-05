@@ -23,8 +23,8 @@ class TranslatorTest extends PHPUnit_Framework_TestCase {
 	public function testLoadTranslationsCallsLoaderInterface()
 	{
 		$t = new Translator($loader = m::mock('Illuminate\Translation\LoaderInterface'), array('en', 'sp'), 'en', 'sp');
-		$loader->shouldReceive('loadLocale')->once()->with('en')->andReturn(array('en.messages'));
-		$loader->shouldReceive('loadLocale')->once()->with('sp')->andReturn(array('sp.messages'));
+		$loader->shouldReceive('load')->once()->with('en')->andReturn(array('en.messages'));
+		$loader->shouldReceive('load')->once()->with('sp')->andReturn(array('sp.messages'));
 		$t->setSymfonyTranslator($base = m::mock('Symfony\Component\Translation\Translator'));
 		$base->shouldReceive('addResource')->once()->with('array', array('en.messages'), 'en');
 		$base->shouldReceive('addResource')->once()->with('array', array('sp.messages'), 'sp');
@@ -36,11 +36,11 @@ class TranslatorTest extends PHPUnit_Framework_TestCase {
 	public function testNamedPathsMayBeLoaded()
 	{
 		$t = new Translator($loader = m::mock('Illuminate\Translation\LoaderInterface'), array('en', 'sp'), 'en', 'sp');
-		$loader->shouldReceive('loadLocaleFromHint')->once()->with('en', __DIR__)->andReturn(array('en.messages'));
+		$loader->shouldReceive('loadNamespaced')->once()->with('en','foo', __DIR__)->andReturn(array('en.messages'));
 		$t->setSymfonyTranslator($base = m::mock('Symfony\Component\Translation\Translator'));
 		$base->shouldReceive('addResource')->once()->with('array', array('en.messages'), 'en', 'foo');
 
-		$t->addNamedPath('foo', __DIR__, array('en'));
+		$t->addNamespace('foo', __DIR__, array('en'));
 	}	
 
 

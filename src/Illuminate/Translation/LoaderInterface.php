@@ -8,15 +8,16 @@ interface LoaderInterface {
 	 * @param  string  $locale
 	 * @return array
 	 */
-	public function loadLocale($locale);
+	public function load($locale);
 
 	/**
 	 * Load the messages for a hinted locale.
 	 *
 	 * @param  string  $locale
+	 * @param  string  $namespace
 	 * @param  string  $hint
 	 * @return array
 	 */
-	public function loadLocaleFromHint($locale, $hint);
+	public function loadNamespaced($locale, $namespace, $hint);
 
 }

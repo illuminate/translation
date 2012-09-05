@@ -88,7 +88,7 @@ class Translator implements TranslatorInterface {
 	{
 		foreach ($this->locales as $locale)
 		{
-			$messages = $this->loader->loadLocale($locale);
+			$messages = $this->loader->load($locale);
 
 			$this->trans->addResource('array', $messages, $locale);
 		}
@@ -167,20 +167,20 @@ class Translator implements TranslatorInterface {
 	}
 
 	/**
-	 * Add a new named path to the loader.
+	 * Add a new namespace to the loader.
 	 *
-	 * @param  string  $name
-	 * @param  string  $path
+	 * @param  string  $namespace
+	 * @param  string  $hint
 	 * @param  array   $locales
 	 * @return void
 	 */
-	public function addNamedPath($name, $path, array $locales)
+	public function addNamespace($namespace, $hint, array $locales)
 	{
 		foreach ($locales as $locale)
 		{
-			$messages = $this->loader->loadLocaleFromHint($locale, $path);
+			$messages = $this->loader->loadNamespaced($locale, $namespace, $hint);
 
-			$this->trans->addResource('array', $messages, $locale, $name);
+			$this->trans->addResource('array', $messages, $locale, $namespace);
 		}
 	}
 
