@@ -19,6 +19,13 @@ class FileLoader implements LoaderInterface {
 	protected $path;
 
 	/**
+	 * All of the namespace hints.
+	 *
+	 * @var array
+	 */
+	protected $hints = array();
+
+	/**
 	 * Create a new file loader instance.
 	 *
 	 * @param  Illuminate\Filesystem  $files
@@ -36,22 +43,33 @@ class FileLoader implements LoaderInterface {
 	 * @param  string  $locale
 	 * @return array
 	 */
-	public function load($locale)
+	public function load($locale, $group, $namespace = null)
 	{
-		return $this->loadLocaleFromPath($this->path, $locale);
+		if (is_null($namespace))
+		{
+			return $this->loadPath($this->path, $locale, $group);
+		}
+		else
+		{
+			return $this->loadNamespaced($locale, $group, $namespace);
+		}
 	}
 
 	/**
-	 * Load the messages for a hinted locale.
+	 * Load a namespaced translation group.
 	 *
 	 * @param  string  $locale
+	 * @param  string  $group
 	 * @param  string  $namespace
-	 * @param  string  $hint
-	 * @return array
 	 */
-	public function loadNamespaced($locale, $namespace, $hint)
+	protected function loadNamespaced($locale, $group, $namespace)
 	{
-		return $this->loadLocaleFromPath($hint, $locale);
+		if (isset($this->hints[$namespace]))
+		{
+			return $this->loadPath($this->hints[$namespace], $locale, $group);
+		}
+
+		throw new \InvalidArgumentException("Namespace [$namespace] not registered.");
 	}
 
 	/**
@@ -59,16 +77,29 @@ class FileLoader implements LoaderInterface {
 	 *
 	 * @param  string  $path
 	 * @param  string  $locale
+	 * @param  string  $group
 	 * @return array
 	 */
-	public function loadLocaleFromPath($path, $locale)
+	protected function loadPath($path, $locale, $group)
 	{
-		if ($this->files->exists($full = $path.'/'.$locale.'.php'))
+		if ($this->files->exists($full = "{$path}/{$locale}/{$group}.php"))
 		{
 			return $this->files->getRequire($full);
 		}
 
 		return array();
+	}
+
+	/**
+	 * Add a new namespace to the loader.
+	 *
+	 * @param  string  $namespace
+	 * @param  string  $hint
+	 * @return void
+	 */
+	public function addNamespace($namespace, $hint)
+	{
+		$this->hints[$namespace] = $hint;
 	}
 
 }

@@ -1,10 +1,11 @@
 <?php namespace Illuminate\Translation;
 
+use Illuminate\Support\NamespacedItemResolver;
 use Symfony\Component\Translation\Loader\ArrayLoader;
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Translation\Translator as SymfonyTranslator;
 
-class Translator implements TranslatorInterface {
+class Translator extends NamespacedItemResolver implements TranslatorInterface {
 
 	/**
 	 * The loader implementation.
@@ -21,25 +22,11 @@ class Translator implements TranslatorInterface {
 	protected $trans;
 
 	/**
-	 * The locales that should be loaded.
+	 * The array of loaded translation groups.
 	 *
 	 * @var array
 	 */
-	protected $locales;
-
-	/**
-	 * The default locale for translation.
-	 *
-	 * @var string
-	 */
-	protected $default;
-
-	/**
-	 * The fallback locale for translation.
-	 *
-	 * @var string
-	 */
-	protected $fallback;
+	protected $loaded = array();
 
 	/**
 	 * Create a new translator instance.
@@ -50,48 +37,32 @@ class Translator implements TranslatorInterface {
 	 * @param  string  $fallback
 	 * @return void
 	 */
-	public function __construct(LoaderInterface $loader, array $locales, $default, $fallback)
+	public function __construct(LoaderInterface $loader, $default, $fallback)
 	{
 		$this->loader = $loader;
-		$this->locales = $locales;
-		$this->default = $default;
-		$this->fallback = $fallback;
-		$this->trans = $this->createSymfonyTranslator();
+
+		$this->trans = $this->createSymfonyTranslator($default, $fallback);
 	}
 
 	/**
 	 * Create a new Symfony translator instance.
 	 *
+	 * @param  string  $default
+	 * @param  string  $fallback
 	 * @return Symfony\Component\Translation\Translator
 	 */
-	protected function createSymfonyTranslator()
+	protected function createSymfonyTranslator($default, $fallback)
 	{
-		$trans = new SymfonyTranslator($this->default);
+		$trans = new SymfonyTranslator($default);
 
 		// After creating the translator instance we will set the fallback locale
 		// as well as the array loader so that messages can be properly loaded
 		// from the application. Then we're ready to get the language lines.
-		$trans->setFallbackLocale($this->fallback);
+		$trans->setFallbackLocale($fallback);
 
 		$trans->addLoader('array', new ArrayLoader);
 
 		return $trans;
-	}
-
-	/**
-	 * Load the translations for the translator.
-	 *
-	 * @param  Illuminate\Translation\LoaderInterface  $loader
-	 * @return void
-	 */
-	public function loadTranslations()
-	{
-		foreach ($this->locales as $locale)
-		{
-			$messages = $this->loader->load($locale);
-
-			$this->trans->addResource('array', $messages, $locale);
-		}
 	}
 
 	/**
@@ -116,9 +87,11 @@ class Translator implements TranslatorInterface {
 	 */
 	public function get($key, $parameters = array(), $locale = null)
 	{
-		list($namespace, $key) = $this->parseKey($key);
+		list($namespace, $group, $item) = $this->parseKey($key);
 
-		return $this->trans($key, $parameters, $namespace, $locale);
+		$domain = $this->load($group, $namespace, $locale);
+
+		return $this->trans($item, $parameters, $domain, $locale);
 	}
 
 	/**
@@ -132,9 +105,11 @@ class Translator implements TranslatorInterface {
 	 */
 	public function choice($key, $number, $parameters = array(), $locale = null)
 	{
-		list($namespace, $key) = $this->parseKey($key);
+		list($namespace, $group, $item) = $this->parseKey($key);
 
-		return $this->transChoice($key, $number, $parameters, $namespace, $locale);
+		$domain = $this->load($group, $namespace, $locale);
+
+		return $this->transChoice($item, $number, $parameters, $domain, $locale);
 	}
 
 	/**
@@ -167,39 +142,88 @@ class Translator implements TranslatorInterface {
 	}
 
 	/**
+	 * Load the specified language group.
+	 *
+	 * @param  string  $group
+	 * @param  string  $namespace
+	 * @param  string  $locale
+	 * @return string
+	 */
+	protected function load($group, $namespace, $locale)
+	{
+		$domain = $namespace.'::'.$group;
+
+		// First we'll make sure that this language group hasn't already been loaded
+		// for the given locale and namespace. If it has, we will simply bail out
+		// and not do any further processing so each group is loaded only once.
+		if ($this->loaded($group, $namespace, $locale))
+		{
+			return $domain;
+		}
+
+		$locale = $locale ?: $this->getLocale();
+
+		$lines = $this->loader->load($locale, $group, $namespace);
+
+		// The domain is used to store the messages in the Symfony translator object
+		// and functions as a sort of logical separator of message types so we'll
+		// use the namespace and group as the "domain", which should be unique.
+		$this->addResource($lines, $locale, $domain);
+
+		$this->setLoaded($group, $namespace, $locale);
+
+		return $domain;
+	}
+
+	/**
+	 * Add an array resource to the Symfony translator.
+	 *
+	 * @param  array   $lines
+	 * @param  string  $locale
+	 * @param  string  $domain
+	 * @return void
+	 */
+	protected function addResource(array $lines, $locale, $domain)
+	{
+		$this->trans->addResource('array', $lines, $locale, $domain);
+	}
+
+	/**
+	 * Determine if the given group has been loaded.
+	 *
+	 * @param  string  $group
+	 * @param  string  $namespace
+	 * @param  string  $locale
+	 * @return bool
+	 */
+	protected function loaded($group, $namespace, $locale)
+	{
+		return array_key_exists($group.$namespace.$locale, $this->loaded);
+	}
+
+	/**
+	 * Set the given translation group as being loaded.
+	 *
+	 * @param  string  $group
+	 * @param  string  $namespace
+	 * @param  string  $locale
+	 * @return void
+	 */
+	protected function setLoaded($group, $namespace, $locale)
+	{
+		$this->loaded[$group.$namespace.$locale] = true;
+	}
+
+	/**
 	 * Add a new namespace to the loader.
 	 *
 	 * @param  string  $namespace
 	 * @param  string  $hint
-	 * @param  array   $locales
 	 * @return void
 	 */
-	public function addNamespace($namespace, $hint, array $locales)
+	public function addNamespace($namespace, $hint)
 	{
-		foreach ($locales as $locale)
-		{
-			$messages = $this->loader->loadNamespaced($locale, $namespace, $hint);
-
-			$this->trans->addResource('array', $messages, $locale, $namespace);
-		}
-	}
-
-	/**
-	 * Parse the key and get the namespace and key segments.
-	 *
-	 * @param  string  $key
-	 * @return array
-	 */
-	protected function parseKey($key)
-	{
-		if (strpos($key, '::') !== false)
-		{
-			return explode('::', $key);
-		}
-		else
-		{
-			return array('messages', $key);
-		}
+		$this->loader->addNamespace($namespace, $hint);
 	}
 
 	/**
