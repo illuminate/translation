@@ -154,11 +154,11 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 	 */
 	public function load($group, $namespace, $locale)
 	{
+		// The domain is used to store the messages in the Symfony translator object
+		// and functions as a sort of logical separator of message types so we'll
+		// use the namespace and group as the "domain", which should be unique.
 		$domain = $namespace.'::'.$group;
 
-		// First we'll make sure that this language group hasn't already been loaded
-		// for the given locale and namespace. If it has, we will simply bail out
-		// and not do any further processing so each group is loaded only once.
 		$locale = $locale ?: $this->getLocale();
 
 		if ($this->loaded($group, $namespace, $locale))
@@ -166,12 +166,12 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 			return $domain;
 		}
 
+		// We're finally ready to load the array of messages from the loader and add
+		// them to the Symfony translator. We will also convert this array to dot
+		// format so that deeply nested items will be accessed by a translator.
 		$lines = $this->loader->load($locale, $group, $namespace);
 
-		// The domain is used to store the messages in the Symfony translator object
-		// and functions as a sort of logical separator of message types so we'll
-		// use the namespace and group as the "domain", which should be unique.
-		$this->addResource($lines, $locale, $domain);
+		$this->addResource(array_dot($lines), $locale, $domain);
 
 		$this->setLoaded($group, $namespace, $locale);
 

@@ -53,9 +53,9 @@ class TranslatorTest extends PHPUnit_Framework_TestCase {
 	public function testLoadMethodProperlyCallsLoaderToRetrieveItems()
 	{
 		$t = new Translator($loader = $this->getLoader(), 'en', 'sp');
-		$loader->shouldReceive('load')->once()->with('en', 'foo', 'bar')->andReturn(array('messages'));
+		$loader->shouldReceive('load')->once()->with('en', 'foo', 'bar')->andReturn(array('messages' => array('foo' => 'bar')));
 		$t->setSymfonyTranslator($base = m::mock('Symfony\Component\Translation\Translator'));
-		$base->shouldReceive('addResource')->once()->with('array', array('messages'), 'en', 'bar::foo');
+		$base->shouldReceive('addResource')->once()->with('array', array('messages.foo' => 'bar'), 'en', 'bar::foo');
 		$base->shouldReceive('getLocale')->andReturn('en');
 		$domain = $t->load('foo', 'bar', null);
 
