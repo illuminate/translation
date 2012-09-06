@@ -94,7 +94,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 		// logically separate related groups of messages, and should be unique.
 		$domain = $this->load($group, $namespace, $locale);
 
-		return $this->trans($item, $parameters, $domain, $locale);
+		return $this->trans->trans($item, $parameters, $domain, $locale);
 	}
 
 	/**
@@ -112,7 +112,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 
 		$domain = $this->load($group, $namespace, $locale);
 
-		return $this->transChoice($item, $number, $parameters, $domain, $locale);
+		return $this->trans->transChoice($item, $number, $parameters, $domain, $locale);
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 	 */
 	public function trans($id, array $parameters = array(), $domain = 'messages', $locale = null)
 	{
-		return $this->trans->trans($id, $parameters, $domain, $locale);
+		return $this->get($id, $parameters, $locale);
 	}
 
 	/**
@@ -141,7 +141,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 	 */
 	public function transChoice($id, $number, array $parameters = array(), $domain = 'messages', $locale = null)
 	{
-		return $this->trans->transChoice($id, $number, $parameters, $domain, $locale);
+		return $this->choice($id, $number, $parameters, $locale);
 	}
 
 	/**
