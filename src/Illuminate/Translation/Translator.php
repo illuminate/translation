@@ -89,6 +89,9 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 	{
 		list($namespace, $group, $item) = $this->parseKey($key);
 
+		// Once we call the "load" method, we will receive back the "domain" for the
+		// namespace and group. The "domain" is used by the Symfony translator to
+		// logically separate related groups of messages, and should be unique.
 		$domain = $this->load($group, $namespace, $locale);
 
 		return $this->trans($item, $parameters, $domain, $locale);
@@ -149,19 +152,19 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 	 * @param  string  $locale
 	 * @return string
 	 */
-	protected function load($group, $namespace, $locale)
+	public function load($group, $namespace, $locale)
 	{
 		$domain = $namespace.'::'.$group;
 
 		// First we'll make sure that this language group hasn't already been loaded
 		// for the given locale and namespace. If it has, we will simply bail out
 		// and not do any further processing so each group is loaded only once.
+		$locale = $locale ?: $this->getLocale();
+
 		if ($this->loaded($group, $namespace, $locale))
 		{
 			return $domain;
 		}
-
-		$locale = $locale ?: $this->getLocale();
 
 		$lines = $this->loader->load($locale, $group, $namespace);
 

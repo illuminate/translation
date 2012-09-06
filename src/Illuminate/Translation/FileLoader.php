@@ -69,7 +69,7 @@ class FileLoader implements LoaderInterface {
 			return $this->loadPath($this->hints[$namespace], $locale, $group);
 		}
 
-		throw new \InvalidArgumentException("Namespace [$namespace] not registered.");
+		return array();
 	}
 
 	/**
