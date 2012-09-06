@@ -68,6 +68,19 @@ class TranslatorTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testKeyIsReturnedThroughTransMethodsWhenItemsDontExist()
+	{
+		$t = new Translator($loader = $this->getLoader(), 'en', 'sp');
+		$loader->shouldReceive('load')->once()->andReturn(array());
+		$t->setSymfonyTranslator($base = m::mock('Symfony\Component\Translation\Translator'));
+		$base->shouldReceive('getLocale')->andReturn('en');
+		$base->shouldReceive('addResource');
+		$base->shouldReceive('trans')->once()->with('bar', array(), '::foo', null)->andReturn('bar');
+
+		$this->assertEquals('foo.bar', $t->trans('foo.bar'));
+	}
+
+
 	protected function getLoader()
 	{
 		return m::mock('Illuminate\Translation\LoaderInterface');
