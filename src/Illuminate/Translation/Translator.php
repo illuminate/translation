@@ -170,11 +170,11 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 			return $domain;
 		}
 
+		$lines = $this->loader->load($locale, $group, $namespace);
+
 		// We're finally ready to load the array of messages from the loader and add
 		// them to the Symfony translator. We will also convert this array to dot
 		// format so that deeply nested items will be accessed by a translator.
-		$lines = $this->loader->load($locale, $group, $namespace);
-
 		$this->addResource(array_dot($lines), $locale, $domain);
 
 		$this->setLoaded($group, $namespace, $locale);
