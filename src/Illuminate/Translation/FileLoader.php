@@ -84,7 +84,7 @@ class FileLoader implements LoaderInterface {
 	{
 		if ($this->files->exists($full = "{$path}/{$locale}/{$group}.php"))
 		{
-			return $this->files->getRequire($full);
+			return array_dot($this->files->getRequire($full));
 		}
 
 		return array();
