@@ -3,7 +3,6 @@
 use Illuminate\Support\NamespacedItemResolver;
 use Symfony\Component\Translation\Loader\ArrayLoader;
 use Symfony\Component\Translation\TranslatorInterface;
-use Symfony\Component\Translation\Translator as SymfonyTranslator;
 
 class Translator extends NamespacedItemResolver implements TranslatorInterface {
 
@@ -193,6 +192,8 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface {
 	protected function addResource(array $lines, $locale, $domain)
 	{
 		$this->trans->addResource('array', $lines, $locale, $domain);
+
+		$this->trans->refreshCatalogue($locale);
 	}
 
 	/**
