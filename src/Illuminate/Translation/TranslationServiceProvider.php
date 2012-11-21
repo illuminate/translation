@@ -41,7 +41,7 @@ class TranslationServiceProvider extends ServiceProvider {
 	{
 		$app['translation.loader'] = $app->share(function($app)
 		{
-			return new FileLoader($app['files'], $app['config']['app.locale_path']);
+			return new FileLoader($app['files'], $app['path'].'/lang');
 		});
 	}
 
