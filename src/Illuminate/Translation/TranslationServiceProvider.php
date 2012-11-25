@@ -7,14 +7,13 @@ class TranslationServiceProvider extends ServiceProvider {
 	/**
 	 * Register the service provider.
 	 *
-	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	public function register($app)
+	public function register()
 	{
-		$this->registerLoader($app);
+		$this->registerLoader();
 
-		$app['translator'] = $app->share(function($app)
+		$this->app['translator'] = $this->app->share(function($app)
 		{
 			$loader = $app['translation.loader'];
 
@@ -34,12 +33,11 @@ class TranslationServiceProvider extends ServiceProvider {
 	/**
 	 * Register the translation line loader.
 	 *
-	 * @param  Illuminate\Foundation\Application  $app
 	 * @return void
 	 */
-	protected function registerLoader($app)
+	protected function registerLoader()
 	{
-		$app['translation.loader'] = $app->share(function($app)
+		$this->app['translation.loader'] = $this->app->share(function($app)
 		{
 			return new FileLoader($app['files'], $app['path'].'/lang');
 		});
