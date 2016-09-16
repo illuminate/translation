@@ -124,4 +124,14 @@ class FileLoader implements LoaderInterface
     {
         $this->hints[$namespace] = $hint;
     }
+    
+    /**
+     * Return all namespace hints.
+     *
+     * @return array
+     */
+    public function getHints()
+    {
+        return $this->hints;
+    }
 }
